@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Capita - My Portfolio</title>
+  <title>Capita - User Profile</title>
   <style>
     html, body {
       margin: 0;
-      height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 0;
+      min-height: 100vh;
       background: linear-gradient(to bottom right, #000000, #000428, #001f33);
-      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
     }
 
     .navbar {
-      background-color: #0a0a0a;
+      background: #0a0a0a;
       padding: 20px 40px;
       display: flex;
       justify-content: space-between;
@@ -63,6 +64,7 @@
       cursor: pointer;
       font-size: 15px;
       font-weight: bold;
+      transition: background 0.2s;
     }
 
     .logout-btn:hover {
@@ -70,8 +72,8 @@
     }
 
     .container {
-      margin: 40px auto;
-      max-width: 900px;
+      max-width: 600px;
+      margin: 60px auto;
       background: rgba(15, 15, 15, 0.9);
       padding: 30px;
       border-radius: 12px;
@@ -79,157 +81,172 @@
     }
 
     h2 {
+      margin-bottom: 25px;
       color: #00ffcc;
       text-align: center;
-      margin-bottom: 25px;
       text-shadow: 0 0 8px #00bfff;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #111;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    .info-row {
+      margin-bottom: 20px;
     }
 
-    th, td {
-      padding: 14px;
-      text-align: center;
-      border-bottom: 1px solid #00ffcc30;
+    .info-label {
+      font-weight: bold;
+      color: #00ffaa;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 18px;
       color: #e0e0e0;
     }
 
-    th {
-      background: #1a1a1a;
-      color: #00ffcc;
-      text-shadow: 0 0 6px #00bfff50;
+    input {
+      width: 100%;
+      padding: 10px;
+      background: #111;
+      border: 1px solid #00ffcc30;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 16px;
     }
 
-    tr:hover {
-      background: rgba(0, 255, 255, 0.05);
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 20px;
     }
 
-    .empty-msg {
-      text-align: center;
-      padding: 20px;
-      color: #aaa;
-      font-size: 18px;
+    .edit-btn {
+      background-color: #f1c40f;
+      color: black;
+    }
+
+    .edit-btn:hover {
+      background-color: #d4ac0d;
+    }
+
+    .save-btn {
+      background-color: #00bfff;
+      color: white;
+    }
+
+    .save-btn:hover {
+      background-color: #0099cc;
     }
   </style>
 </head>
 <body>
 
-  <!-- ✅ Navbar -->
   <div class="navbar">
     <h1>📈 StockTrade</h1>
-
     <div class="nav-center">
       <a href="dashboard.html">Explore</a>
       <a href="watchlist.html">Watchlist</a>
       <a href="myportfolio.html">My Portfolio</a>
       <a href="transactions.html">Transactions</a>
+      <a href="sip.html">SIP Calculator</a>
       <a href="profile.html">My Profile</a>
     </div>
-
     <button class="logout-btn" id="logoutBtn">Logout</button>
   </div>
 
-  <!-- ✅ Main Content -->
   <div class="container">
-    <h2>📊 My Portfolio</h2>
+    <h2>👤 My Profile</h2>
 
-    <table id="portfolioTable">
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th>Ticker</th>
-          <th>Quantity</th>
-          <th>Buy Price</th>
-        </tr>
-      </thead>
-      <tbody id="portfolioBody">
-        <!-- Rows will be injected here -->
-      </tbody>
-    </table>
+    <div class="info-row">
+      <label class="info-label">Name:</label>
+      <div id="nameDisplay" class="info-value"></div>
+      <input type="text" id="nameInput" style="display: none;" />
+    </div>
 
-    <p id="emptyMessage" class="empty-msg" style="display:none;">
-      You don’t own any stocks yet. Explore and buy stocks to start building your portfolio!
-    </p>
+    <div class="info-row">
+      <label class="info-label">Email:</label>
+      <div id="emailDisplay" class="info-value"></div>
+      <input type="email" id="emailInput" style="display: none;" />
+    </div>
+
+    <button class="btn edit-btn" id="editBtn" onclick="enableEdit()">✏️ Edit</button>
+    <button class="btn save-btn" id="saveBtn" style="display: none;" onclick="saveChanges()">💾 Save</button>
   </div>
 
-<script>
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.clear();
-    window.location.href = 'login.html';
-  });
+  <script>
+    const name = localStorage.getItem('name');
+    const email = localStorage.getItem('email');
+    const userId = localStorage.getItem('user_id');
 
-  async function loadPortfolio() {
-    try {
-      const user_id = localStorage.getItem('user_id');
-      if (!user_id) {
-        alert("❌ No user ID found. Please login again.");
-        return;
-      }
-
-      const res = await fetch(`/api/transactions/${user_id}`);
-      const transactions = await res.json();
-
-      const buys = transactions.filter(tx =>
-        String(tx.transaction_type).toLowerCase() === 'buy'
-      );
-
-      const holdings = {};
-      buys.forEach(tx => {
-        const { ticker_symbol, company_name, quantity, price_per_share } = tx;
-        if (!ticker_symbol || !company_name) return;
-
-        if (!holdings[ticker_symbol]) {
-          holdings[ticker_symbol] = {
-            company_name,
-            totalQty: 0,
-            totalCost: 0,
-          };
-        }
-
-        holdings[ticker_symbol].totalQty += Number(quantity);
-        holdings[ticker_symbol].totalCost += Number(quantity) * Number(price_per_share);
-      });
-
-      const table = document.getElementById('portfolioBody');
-      table.innerHTML = '';
-      const symbols = Object.keys(holdings);
-
-      if (symbols.length === 0) {
-        document.getElementById('emptyMessage').style.display = 'block';
-        document.getElementById('portfolioTable').style.display = 'none';
-        return;
-      }
-
-      symbols.forEach(symbol => {
-        const h = holdings[symbol];
-        const avgPrice = h.totalCost / h.totalQty;
-
-        const row = `
-          <tr>
-            <td>${h.company_name}</td>
-            <td>${symbol}</td>
-            <td>${h.totalQty}</td>
-            <td>₹${avgPrice.toFixed(2)}</td>
-          </tr>
-        `;
-        table.innerHTML += row;
-      });
-
-    } catch (err) {
-      console.error("❌ Error loading portfolio:", err);
-      alert('❌ Error loading portfolio');
+    if (!name || !email || !userId) {
+      window.location.href = 'login.html';
     }
-  }
 
-  loadPortfolio();
-</script>
+    document.getElementById('nameDisplay').innerText = name;
+    document.getElementById('emailDisplay').innerText = email;
+    document.getElementById('nameInput').value = name;
+    document.getElementById('emailInput').value = email;
+
+    function enableEdit() {
+      document.getElementById('nameDisplay').style.display = 'none';
+      document.getElementById('emailDisplay').style.display = 'none';
+      document.getElementById('editBtn').style.display = 'none';
+
+      document.getElementById('nameInput').style.display = 'block';
+      document.getElementById('emailInput').style.display = 'block';
+      document.getElementById('saveBtn').style.display = 'inline-block';
+    }
+
+    async function saveChanges() {
+      const updatedName = document.getElementById('nameInput').value.trim();
+      const updatedEmail = document.getElementById('emailInput').value.trim();
+
+      if (!updatedName || !updatedEmail) {
+        return alert("❌ Name and email cannot be empty.");
+      }
+
+      try {
+        const res = await fetch(`/api/users/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: updatedName,
+            email: updatedEmail,
+            password_hash: ""
+          })
+        });
+
+        if (res.ok) {
+          localStorage.setItem('name', updatedName);
+          localStorage.setItem('email', updatedEmail);
+          alert("✅ Profile updated!");
+
+          document.getElementById('nameDisplay').innerText = updatedName;
+          document.getElementById('emailDisplay').innerText = updatedEmail;
+
+          document.getElementById('nameDisplay').style.display = 'block';
+          document.getElementById('emailDisplay').style.display = 'block';
+          document.getElementById('editBtn').style.display = 'inline-block';
+
+          document.getElementById('nameInput').style.display = 'none';
+          document.getElementById('emailInput').style.display = 'none';
+          document.getElementById('saveBtn').style.display = 'none';
+        } else {
+          alert("❌ Failed to update profile.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("❌ Error while updating.");
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+  </script>
 
 </body>
 </html>
