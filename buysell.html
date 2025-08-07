@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Buy / Sell | Capita</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #000000, #000428, #001f33);
+      color: white;
+    }
+
+    .navbar {
+      background-color: #0a0a23;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,255,204,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar h1 {
+      font-size: 24px;
+      color: #00ffcc;
+      margin: 0;
+    }
+
+    .nav-center a {
+      text-decoration: none;
+      color: #00ffcc;
+      margin: 0 12px;
+      font-weight: bold;
+    }
+
+    .nav-center a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      padding: 40px;
+    }
+
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .search-bar input {
+      width: 60%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .stock-card {
+      background-color: #1a1a1a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0,255,204,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stock-info strong {
+      font-size: 18px;
+      color: #00ffcc;
+    }
+
+    .stock-info small {
+      color: #aaa;
+    }
+
+    .stock-actions {
+      display: flex;
+      align-items: center;
+    }
+
+    .quantity-input {
+      width: 60px;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      margin-right: 10px;
+    }
+
+    .buy-btn, .sell-btn, .watchlist-btn {
+      padding: 6px 12px;
+      margin-left: 6px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .buy-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .sell-btn {
+      background-color: #ff4d4d;
+      color: white;
+    }
+
+    .watchlist-btn {
+      background-color: #f1c40f;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>Capita</h1>
+    <div class="nav-center">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="watchlist.html">Watchlist</a>
+      <a href="myportfolio.html">Portfolio</a>
+      <a href="transactions.html">Transactions</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search stocks by name or ticker...">
+    </div>
+
+    <h2 style="color: #00ffcc; text-align:center;">Available Stocks</h2>
+    <div id="stocksList">Loading stocks...</div>
+  </div>
+
+  <script>
+    let apipath = 'http://localhost:3000';
+
+    async function loadStocks() {
+      try {
+        const res = await fetch(`${apipath}/api/companies`);
+        const companies = await res.json();
+        const stocksDiv = document.getElementById('stocksList');
+
+        stocksDiv.innerHTML = '';
+        companies.forEach(stock => {
+          const card = document.createElement('div');
+          card.className = 'stock-card';
+          card.innerHTML = `
+            <div class="stock-info">
+              <strong>${stock.ticker_symbol}</strong> - ${stock.company_name}<br>
+              <small>₹${stock.stock_price}</small>
+            </div>
+            <div class="stock-actions">
+              <input type="number" class="quantity-input" id="qty-${stock.company_id}" min="1" placeholder="Qty">
+              <button class="buy-btn" onclick="buyStock(${stock.company_id}, '${stock.company_name}', '${stock.ticker_symbol}', ${stock.stock_price})">Buy</button>
+              <button class="sell-btn" onclick="sellStock(${stock.company_id}, '${stock.company_name}', '${stock.ticker_symbol}', ${stock.stock_price})">Sell</button>
+              <button class="watchlist-btn" onclick="addToWatchlist('${stock.company_name}', '${stock.ticker_symbol}')">⭐</button>
+            </div>`;
+          stocksDiv.appendChild(card);
+        });
+      } catch (e) {
+        document.getElementById('stocksList').innerHTML = '<p>Error loading stocks</p>';
+      }
+    }
+
+    function buyStock(company_id, name, ticker, price) {
+      alert(`Buying stock: ${name}`);
+    }
+
+    function sellStock(company_id, name, ticker, price) {
+      alert(`Selling stock: ${name}`);
+    }
+
+    function addToWatchlist(name, ticker) {
+      alert(`Added ${name} to watchlist.`);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function () {
+      const query = this.value.toLowerCase();
+      document.querySelectorAll('.stock-card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
+      });
+    });
+
+    loadStocks();
+  </script>
+</body>
+</html>
