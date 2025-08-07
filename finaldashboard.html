@@ -22,10 +22,13 @@
     }
 
     .container {
-      position: relative;
-      z-index: 1;
-      padding: 60px 40px;
-    }
+        position: relative;
+        z-index: 1;
+        padding: 60px 40px;
+        max-width: 1200px;
+        margin: 0 auto; /* 👈 this centers the layout */
+      }
+      
 
     h1 {
       text-align: center;
@@ -94,10 +97,10 @@
 <div class="container">
   <h1>Welcome to Capita Dashboard</h1>
   <div class="card-grid">
-    <a href="explore.html">
+    <a href="guide.html">
       <div class="card">
-        <h3>Explore Stocks</h3>
-        <p>View and trade your favorite stocks</p>
+        <h3>Guide</h3>
+        <p>Learn about stocks</p>
       </div>
     </a>
     <a href="buysell.html">
